@@ -22,22 +22,22 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
         this.collectionName = collectionName ?? typeof(T).Name;
     }
 
-    private IMongoCollection<T> _collection => database.GetCollection<T>(collectionName);
-    private IMongoQueryable<T> _collectionQueryable => _collection.AsQueryable();
+    private IMongoCollection<T> Collection => database.GetCollection<T>(collectionName);
+    private IMongoQueryable<T> CollectionQueryable => Collection.AsQueryable();
 
     public T? GetLastAdded()
     {
-        return _collectionQueryable.OrderByDescending(xx => xx.Id).FirstOrDefault();
+        return CollectionQueryable.OrderByDescending(xx => xx.Id).FirstOrDefault();
     }
 
     public IMongoQueryable<T> GetAllAsQueryable()
     {
-        return _collectionQueryable;
+        return CollectionQueryable;
     }
 
     public IMongoQueryable<T> FindAllAsQueryable(Expression<Func<T, bool>> filter)
     {
-        return _collectionQueryable.Where(filter);
+        return CollectionQueryable.Where(filter);
     }
 
     public Task<List<T>> GetAllAsync(CancellationToken ct = default)
@@ -52,7 +52,7 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public Task<T?> FindByIdAsync(string id, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, Builders<T>.Filter.Eq(x => x.Id, id))
+        return Collection.Find(clientSession, Builders<T>.Filter.Eq(x => x.Id, id))
                    .SingleOrDefaultAsync(ct) as Task<T?>;
     }
 
@@ -63,37 +63,37 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public Task<List<T>> FindAllAsync(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .ToListAsync(ct);
     }
 
     public List<T> FindAll(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .ToList(ct);
     }
 
     public Task<List<T>> FindAllAsync(FilterDefinition<T> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .ToListAsync(ct);
     }
 
     public List<T> FindAll(FilterDefinition<T> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .ToList(ct);
     }
 
     public Task<T?> FindAsync(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .SingleOrDefaultAsync(ct) as Task<T?>;
     }
 
     public T? Find(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.Find(clientSession, filter)
+        return Collection.Find(clientSession, filter)
                    .SingleOrDefault(ct);
     }
 
@@ -109,48 +109,48 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public long Count(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.CountDocuments(clientSession, filter, ct: ct);
+        return Collection.CountDocuments(clientSession, filter, cancellationToken: ct);
     }
 
     public Task<long> CountAsync(Expression<Func<T, bool>> filter, CancellationToken ct = default)
     {
-        return _collection.CountDocumentsAsync(clientSession, filter, ct: ct);
+        return Collection.CountDocumentsAsync(clientSession, filter, cancellationToken: ct);
     }
 
-    public void CopyFrom(string fromCollection, CancellationToken ct = default, RenameCollectionOptions? options = null, string? newCollectionName = null)
+    public void CopyFrom(string fromCollection, RenameCollectionOptions? options = null, string? newCollectionName = null, CancellationToken ct = default)
     {
-        Drop(ct);
+        Drop(ct: ct);
         database.RenameCollection(fromCollection, string.IsNullOrEmpty(newCollectionName) ? collectionName : newCollectionName, options, ct);
     }
 
-    public void Drop(CancellationToken ct = default, string? newcollectionName = null)
+    public void Drop(string? newcollectionName = null, CancellationToken ct = default)
     {
         database.DropCollection(string.IsNullOrEmpty(newcollectionName) ? collectionName : newcollectionName, ct);
     }
 
-    public void Add(T t, CancellationToken ct = default, InsertOneOptions? options = null)
+    public void Add(T t, InsertOneOptions? options = null, CancellationToken ct = default)
     {
-        _collection.InsertOne(clientSession, t, options, ct);
+        Collection.InsertOne(clientSession, t, options, ct);
     }
 
-    public Task AddAsync(T t, CancellationToken ct = default, InsertOneOptions? options = null)
+    public Task AddAsync(T t, InsertOneOptions? options = null, CancellationToken ct = default)
     {
-        return _collection.InsertOneAsync(clientSession, t, options, ct);
+        return Collection.InsertOneAsync(clientSession, t, options, ct);
     }
 
-    public void AddAll(IEnumerable<T> t, CancellationToken ct = default, InsertManyOptions? options = null)
+    public void AddAll(IEnumerable<T> t, InsertManyOptions? options = null, CancellationToken ct = default)
     {
-        _collection.InsertMany(clientSession, t, options, ct);
+        Collection.InsertMany(clientSession, t, options, ct);
     }
 
-    public Task AddAllAsync(IEnumerable<T> t, CancellationToken ct = default, InsertManyOptions? options = null)
+    public Task AddAllAsync(IEnumerable<T> t, InsertManyOptions? options = null, CancellationToken ct = default)
     {
-        return _collection.InsertManyAsync(clientSession, t, options, ct);
+        return Collection.InsertManyAsync(clientSession, t, options, ct);
     }
 
     public T? AddOrUpdate(Expression<Func<T, bool>> condition, T entity, CancellationToken ct = default)
     {
-        var resultOk = _collection.ReplaceOne(clientSession, condition, entity, new ReplaceOptions
+        var resultOk = Collection.ReplaceOne(clientSession, condition, entity, new ReplaceOptions
         {
             IsUpsert = true
         }, ct);
@@ -162,7 +162,7 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
     {
         try
         {
-            var resultOk = await _collection.ReplaceOneAsync(clientSession, condition, entity, new ReplaceOptions
+            var resultOk = await Collection.ReplaceOneAsync(clientSession, condition, entity, new ReplaceOptions
             {
                 IsUpsert = true
             }, ct);
@@ -176,7 +176,7 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
         }
     }
 
-    public long BulkAddOrUpdate(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null)
+    public long BulkAddOrUpdate(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default)
     {
         var bulkOps = new List<WriteModel<T>>();
 
@@ -197,10 +197,10 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
             IsOrdered = false
         };
 
-        return _collection.BulkWrite(clientSession, bulkOps, options, ct).InsertedCount;
+        return Collection.BulkWrite(clientSession, bulkOps, options, ct).InsertedCount;
     }
 
-    public async Task<long> BulkAddOrUpdateAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null)
+    public async Task<long> BulkAddOrUpdateAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default)
     {
         var bulkOps = new List<WriteModel<T>>();
 
@@ -221,12 +221,12 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
             IsOrdered = false
         };
 
-        var result = await _collection.BulkWriteAsync(clientSession, bulkOps, options, ct);
+        var result = await Collection.BulkWriteAsync(clientSession, bulkOps, options, ct);
 
         return result.InsertedCount;
     }
 
-    public long BulkInsert(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null)
+    public long BulkInsert(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default)
     {
         var bulkOps = new List<WriteModel<T>>();
 
@@ -247,10 +247,10 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
             IsOrdered = false
         };
 
-        return _collection.BulkWrite(clientSession, bulkOps, options, ct).InsertedCount;
+        return Collection.BulkWrite(clientSession, bulkOps, options, ct).InsertedCount;
     }
 
-    public async Task<long> BulkInsertAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null)
+    public async Task<long> BulkInsertAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default)
     {
         var bulkOps = new List<WriteModel<T>>();
 
@@ -271,14 +271,14 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
             IsOrdered = false
         };
 
-        var result = await _collection.BulkWriteAsync(clientSession, bulkOps, options, ct);
+        var result = await Collection.BulkWriteAsync(clientSession, bulkOps, options, ct);
 
         return result.InsertedCount;
     }
 
     public bool Update(T entity, string key, CancellationToken ct = default)
     {
-        var result = _collection.ReplaceOne(clientSession, x => x.Id == key, entity, new ReplaceOptions
+        var result = Collection.ReplaceOne(clientSession, x => x.Id == key, entity, new ReplaceOptions
         {
             IsUpsert = false
         }, ct);
@@ -288,21 +288,21 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public bool UpdateAll(FilterDefinition<T> filter, UpdateDefinition<T> updateDefinition, CancellationToken ct = default)
     {
-        var result = _collection.UpdateMany(clientSession, filter, updateDefinition, ct: ct);
+        var result = Collection.UpdateMany(clientSession, filter, updateDefinition, cancellationToken: ct);
 
         return result.IsAcknowledged;
     }
 
     public async Task<bool> UpdateAllAsync(FilterDefinition<T> filter, UpdateDefinition<T> updateDefinition, CancellationToken ct = default)
     {
-        var result = await _collection.UpdateManyAsync(clientSession, filter, updateDefinition, ct: ct);
+        var result = await Collection.UpdateManyAsync(clientSession, filter, updateDefinition, cancellationToken: ct);
 
         return result.IsAcknowledged;
     }
 
     public async Task<T?> UpdateAsync(T entity, string key, CancellationToken ct = default)
     {
-        var resultOk = await _collection.ReplaceOneAsync(clientSession, x => x.Id == key, entity, new ReplaceOptions
+        var resultOk = await Collection.ReplaceOneAsync(clientSession, x => x.Id == key, entity, new ReplaceOptions
         {
             IsUpsert = false
         }, ct);
@@ -312,7 +312,7 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public async Task<T?> UpdateAsync(Expression<Func<T, bool>> condition, T entity, CancellationToken ct = default)
     {
-        var resultOk = await _collection.ReplaceOneAsync(clientSession, condition, entity, new ReplaceOptions
+        var resultOk = await Collection.ReplaceOneAsync(clientSession, condition, entity, new ReplaceOptions
         {
             IsUpsert = false
         }, ct);
@@ -329,10 +329,10 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
         //    .Set(r => r.PrezzoMinimo, cc.PrezzoMinimo)
         //    .Set(r => r.PrezzoMassimo, cc.PrezzoMassimo);
 
-        var result = _collection.UpdateMany(clientSession, condition, updateDefinition, new UpdateOptions
+        var result = Collection.UpdateMany(clientSession, condition, updateDefinition, new UpdateOptions
         {
             IsUpsert = false
-        });
+        }, ct);
         return result.IsAcknowledged;
     }
 
@@ -345,7 +345,7 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
         //    .Set(r => r.PrezzoMinimo, cc.PrezzoMinimo)
         //    .Set(r => r.PrezzoMassimo, cc.PrezzoMassimo);
 
-        var result = await _collection.UpdateManyAsync(clientSession, condition, updateDefinition, new UpdateOptions
+        var result = await Collection.UpdateManyAsync(clientSession, condition, updateDefinition, new UpdateOptions
         {
             IsUpsert = false
         }, ct);
@@ -355,13 +355,13 @@ public sealed class Repository<T> : IRepository<T> where T : BaseEntity
 
     public async Task<bool> DeleteAsync(string key, CancellationToken ct = default)
     {
-        var result = await _collection.DeleteOneAsync(key, ct);
+        var result = await Collection.DeleteOneAsync(key, ct);
         return result.IsAcknowledged;
     }
 
     public async Task<bool> DeleteAsync(Expression<Func<T, bool>> key, CancellationToken ct = default)
     {
-        var result = await _collection.DeleteManyAsync(key, ct);
+        var result = await Collection.DeleteManyAsync(key, ct);
         return result.IsAcknowledged;
     }
 }

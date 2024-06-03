@@ -41,29 +41,29 @@ public interface IRepository<T> where T : BaseEntity
 
     Task<long> CountAsync(Expression<Func<T, bool>> filter, CancellationToken ct = default);
 
-    void CopyFrom(string fromCollection, CancellationToken ct = default, RenameCollectionOptions? options = null, string? newCollectionName = null);
+    void CopyFrom(string fromCollection, RenameCollectionOptions? options = null, string? newCollectionName = null, CancellationToken ct = default);
 
-    void Drop(CancellationToken ct = default, string? newcollectionName = null);
+    void Drop(string? newcollectionName = null, CancellationToken ct = default);
 
-    void Add(T t, CancellationToken ct = default, InsertOneOptions? options = null);
+    void Add(T t, InsertOneOptions? options = null, CancellationToken ct = default);
 
-    Task AddAsync(T t, CancellationToken ct = default, InsertOneOptions? options = null);
+    Task AddAsync(T t, InsertOneOptions? options = null, CancellationToken ct = default);
 
-    void AddAll(IEnumerable<T> t, CancellationToken ct = default, InsertManyOptions? options = null);
+    void AddAll(IEnumerable<T> t, InsertManyOptions? options = null, CancellationToken ct = default);
 
-    Task AddAllAsync(IEnumerable<T> t, CancellationToken ct = default, InsertManyOptions? options = null);
+    Task AddAllAsync(IEnumerable<T> t, InsertManyOptions? options = null, CancellationToken ct = default);
 
     T? AddOrUpdate(Expression<Func<T, bool>> condition, T entity, CancellationToken ct = default);
 
     Task<T?> AddOrUpdateAsync(Expression<Func<T, bool>> condition, T entity, CancellationToken ct = default);
 
-    long BulkAddOrUpdate(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null);
+    long BulkAddOrUpdate(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default);
 
-    Task<long> BulkAddOrUpdateAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null);
+    Task<long> BulkAddOrUpdateAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default);
 
-    long BulkInsert(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null);
+    long BulkInsert(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default);
 
-    Task<long> BulkInsertAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, CancellationToken ct = default, BulkWriteOptions? options = null);
+    Task<long> BulkInsertAsync(Expression<Func<T, bool>> condition, IEnumerable<T?> records, BulkWriteOptions? options = null, CancellationToken ct = default);
 
     bool Update(T updated, string key, CancellationToken ct = default);
 
