@@ -1,0 +1,33 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deploy_nuget:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Add GitHub Nuget source
+      run: dotnet nuget add source --username LucaCastellaro --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/LucaCastellaro/index.json"
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore -c Release
+    - name: Test
+      run: dotnet test --verbosity normal
+    - name: Build nuget
+      run: dotnet pack --version-suffix dev-${{ github.run_id }} -c Release --no-build --output ./
+    - name: Deploy on nuget source
+      run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+    - name: Deploy on GitHub source
+      run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET }} --source "github"
