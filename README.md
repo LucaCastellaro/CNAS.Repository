@@ -30,4 +30,65 @@ The nuget package will be publicly deployed on the nuget store.
 
 ### Usage
 
-*Instructions on how to import and work with this library will follow...*
+#### Set the connection string in AppSettings.json
+``` json
+{
+    "ConnectionStrings": {
+        "MongoDb": "mongodb://localhost:27017/MyDatabase"
+    }
+}
+``` 
+
+#### Register in Program.cs
+
+``` c#
+using CNAS.Repository.Extensions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("MongoDb")!;
+
+// Add MongoDb
+// "true" is for logging queries in console. Leave empty or "false" if you don't want to log queries.
+builder.Services.AddMongoDb(connectionString, true);
+
+// Add all your repositories
+builder.Services.AddRepositories();
+```
+
+#### Create a repository
+
+You don't have to create a Repository class for each repository you want to handle.
+Just require the `IRepository<TEntity>` from the DI.
+
+Of course, you can still create a Repository class if you want custom methods that are not in the library.
+All your repositories must inherit from `Repository<TEntity>`.
+
+In both vases, `TEntity` must be a type that inherits from `BaseEntity`.
+
+``` c#
+using CNAS.Repository.Extensions;
+using MongoDb.Bson;
+using MongoDb.Bson.Serialization.Attributes;
+using CNAS.Repository.Models.Entities;
+
+[BsonIgnoreExtraElements]
+public sealed record Student : BaseEntity {
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required int Age { get; init; }
+}
+```
+
+``` c#
+public sealed class StudentService : IStudentService {
+    
+    // ...
+    
+    public StudentService(ILogger<StudentService> logger, IRepository<Student> studentRepo){
+        // ...
+    }
+
+    // ...
+}
+```
