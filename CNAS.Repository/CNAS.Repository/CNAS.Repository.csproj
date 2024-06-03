@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>CNAS.Repository</PackageId>
+		<VersionPrefix>0.0.1</VersionPrefix>
+		<Authors>Luca Castellaro</Authors>
+		<Product>CNAS.Repository</Product>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.Identity.Mongo" Version="8.3.3" />
+		<PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../README.md" Pack="true" PackagePath="\"/>
+	</ItemGroup>
+
+</Project>
